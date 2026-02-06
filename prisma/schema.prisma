@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String            @id @default(cuid())
+  clerkId     String            @unique
+  email       String            @unique
+  displayName String?
+  sessions    PomodoroSession[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model PomodoroSession {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  note          String?
+  minutesPerSet Int
+  setCount      Int
+  startedAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}

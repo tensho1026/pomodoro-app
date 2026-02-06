@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --background: 246 249 252;
+  --surface: 255 255 255;
+  --foreground: 15 23 42;
+  --muted: 100 116 139;
+  --border: 226 232 240;
+  --primary: 14 116 144;
+  --primary-foreground: 248 250 252;
+  --radius: 0.8rem;
+}
+
+@theme inline {
+  --font-sans:
+    "Avenir Next", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+
+  --color-background: rgb(var(--background));
+  --color-surface: rgb(var(--surface));
+  --color-foreground: rgb(var(--foreground));
+  --color-muted: rgb(var(--muted));
+  --color-border: rgb(var(--border));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply min-h-screen bg-background text-foreground font-sans;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(14, 116, 144, 0.08), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.12), transparent 40%);
+}
