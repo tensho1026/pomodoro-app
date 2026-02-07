@@ -1,38 +1,66 @@
-import { cookies } from "next/headers";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-
-export const AUTH_COOKIE_NAME = "pomodoro_demo_auth";
 
 export type AppUser = {
   id: string;
   name: string;
   email: string;
-  authProvider: "clerk-mock";
+  authProvider: "clerk";
 };
 
-export const MOCK_USER: AppUser = {
-  id: "demo-user",
-  name: "Demo User",
-  email: "demo@example.com",
-  authProvider: "clerk-mock",
-};
+const hasClerkEnvironment =
+  Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
+  Boolean(process.env.CLERK_SECRET_KEY);
+
+function getDisplayNameFromClerkUser(user: Awaited<ReturnType<typeof currentUser>>) {
+  if (!user) {
+    return "";
+  }
+
+  if (user.fullName) {
+    return user.fullName;
+  }
+
+  const combined = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+  if (combined) {
+    return combined;
+  }
+
+  return user.username ?? "";
+}
 
 export async function getCurrentUser(): Promise<AppUser | null> {
-  const cookieStore = await cookies();
-  const sessionValue = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (sessionValue !== MOCK_USER.id) {
+  if (!hasClerkEnvironment) {
     return null;
   }
 
-  return MOCK_USER;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const user = await currentUser();
+  if (!user) {
+    return null;
+  }
+
+  const email =
+    user.primaryEmailAddress?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+
+  return {
+    id: user.id,
+    name: getDisplayNameFromClerkUser(user),
+    email,
+    authProvider: "clerk",
+  };
 }
 
 export async function requireCurrentUser(): Promise<AppUser> {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   return user;

@@ -13,6 +13,7 @@
 
 - Next.js (App Router)
 - Server Actions
+- Clerk (認証)
 - Prisma (スキーマ定義済み、接続は後段階)
 - shadcnベースのUIコンポーネント
 - Tailwind CSS
@@ -24,7 +25,12 @@ npm install
 npm run dev
 ```
 
-`/login` から Mock Clerk ログインを実行すると、アプリ画面へ遷移できます。
+### Clerk 環境変数
+
+`.env.local` に以下を設定してください。
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
 
 ## ルーティング
 
@@ -32,7 +38,8 @@ npm run dev
 - `/record` 記録作成
 - `/history` 日別履歴
 - `/analytics` 集計分析
-- `/login` ログイン（Mock Clerk）
+- `/sign-in` ログイン
+- `/sign-up` 新規登録
 
 ## データ保存について
 

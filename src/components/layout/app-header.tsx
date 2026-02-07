@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Clock3, LogOut } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { Clock3 } from "lucide-react";
 
-import { signOutMockClerkAction } from "@/app/actions/auth";
 import { DesktopNav } from "@/components/layout/desktop-nav";
-import { Button } from "@/components/ui/button";
 import type { AppUser } from "@/lib/auth";
 
 type AppHeaderProps = {
@@ -26,12 +25,14 @@ export function AppHeader({ user }: AppHeaderProps) {
 
         <DesktopNav />
 
-        <form action={signOutMockClerkAction}>
-          <Button type="submit" variant="outline" size="sm" className="gap-2">
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            ログアウト
-          </Button>
-        </form>
+        <UserButton
+          afterSignOutUrl="/sign-in"
+          appearance={{
+            elements: {
+              userButtonAvatarBox: "h-9 w-9",
+            },
+          }}
+        />
       </div>
     </header>
   );
