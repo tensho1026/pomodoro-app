@@ -4,23 +4,9 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import type { CreateSessionState } from "@/app/actions/pomodoro-state";
 import { createPomodoroSession } from "@/lib/pomodoro/repository";
 import { syncClerkUserToDatabase } from "@/lib/user-sync";
-
-type CreateSessionFieldErrors = Partial<
-  Record<"title" | "note" | "minutesPerSet" | "setCount", string>
->;
-
-export type CreateSessionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-  errors?: CreateSessionFieldErrors;
-};
-
-export const initialCreateSessionState: CreateSessionState = {
-  status: "idle",
-  message: "",
-};
 
 const createSessionSchema = z.object({
   title: z

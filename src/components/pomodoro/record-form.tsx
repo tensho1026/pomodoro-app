@@ -3,10 +3,8 @@
 import { useActionState, useEffect, useMemo, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
-import {
-  createPomodoroSessionAction,
-  initialCreateSessionState,
-} from "@/app/actions/pomodoro";
+import { createPomodoroSessionAction } from "@/app/actions/pomodoro";
+import { initialCreateSessionState } from "@/app/actions/pomodoro-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
