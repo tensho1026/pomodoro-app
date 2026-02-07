@@ -1,17 +1,19 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
 import { AnalyticsChart } from "@/components/pomodoro/analytics-chart";
 import { StatsCards } from "@/components/pomodoro/stats-cards";
 import { formatMinutes } from "@/lib/pomodoro/format";
-import { getCurrentUser } from "@/lib/auth";
 import { getAnalyticsViewModel } from "@/lib/pomodoro/service";
 
 export default async function AnalyticsPage() {
-  const user = await getCurrentUser();
+  const { userId } = await auth();
 
-  if (!user) {
-    return null;
+  if (!userId) {
+    redirect("/sign-in");
   }
 
-  const analytics = await getAnalyticsViewModel(user.id);
+  const analytics = await getAnalyticsViewModel(userId);
 
   return (
     <div className="space-y-6">

@@ -1,10 +1,11 @@
 "use server";
 
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getCurrentUser } from "@/lib/auth";
 import { createPomodoroSession } from "@/lib/pomodoro/repository";
+import { syncClerkUserToDatabase } from "@/lib/user-sync";
 
 type CreateSessionFieldErrors = Partial<
   Record<"title" | "note" | "minutesPerSet" | "setCount", string>
@@ -64,14 +65,17 @@ export async function createPomodoroSessionAction(
   _previousState: CreateSessionState,
   formData: FormData,
 ): Promise<CreateSessionState> {
-  const user = await getCurrentUser();
+  const { userId } = await auth();
 
-  if (!user) {
+  if (!userId) {
     return {
       status: "error",
       message: "セッションが切れました。再ログインしてください。",
     };
   }
+
+  const clerkUser = await currentUser();
+  await syncClerkUserToDatabase(clerkUser);
 
   const parsed = createSessionSchema.safeParse({
     title: formData.get("title"),
@@ -97,7 +101,7 @@ export async function createPomodoroSessionAction(
   }
 
   await createPomodoroSession({
-    userId: user.id,
+    userId,
     title: parsed.data.title,
     note: parsed.data.note,
     minutesPerSet: parsed.data.minutesPerSet,

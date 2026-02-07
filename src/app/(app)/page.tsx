@@ -1,21 +1,22 @@
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 import { SessionTable } from "@/components/pomodoro/session-table";
 import { StatsCards } from "@/components/pomodoro/stats-cards";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMinutes, formatSets } from "@/lib/pomodoro/format";
-import { getCurrentUser } from "@/lib/auth";
 import { getDashboardViewModel } from "@/lib/pomodoro/service";
 
 export default async function HomePage() {
-  const user = await getCurrentUser();
+  const { userId } = await auth();
 
-  if (!user) {
-    return null;
+  if (!userId) {
+    redirect("/sign-in");
   }
 
-  const dashboard = await getDashboardViewModel(user.id);
+  const dashboard = await getDashboardViewModel(userId);
 
   return (
     <div className="space-y-6">

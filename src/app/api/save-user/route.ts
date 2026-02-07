@@ -2,23 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-
-function resolveDisplayName(user: Awaited<ReturnType<typeof currentUser>>) {
-  if (!user) {
-    return "";
-  }
-
-  if (user.fullName) {
-    return user.fullName;
-  }
-
-  const combined = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
-  if (combined) {
-    return combined;
-  }
-
-  return user.username ?? "";
-}
+import { syncClerkUserToDatabase } from "@/lib/user-sync";
 
 export async function POST() {
   if (!prisma) {
@@ -40,25 +24,14 @@ export async function POST() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const email =
-    user.primaryEmailAddress?.emailAddress ??
-    user.emailAddresses[0]?.emailAddress ??
-    `${user.id}@clerk.local`;
+  const dbUser = await syncClerkUserToDatabase(user);
 
-  const displayName = resolveDisplayName(user);
-
-  const dbUser = await prisma.user.upsert({
-    where: { clerkId: user.id },
-    update: {
-      email,
-      displayName: displayName || null,
-    },
-    create: {
-      clerkId: user.id,
-      email,
-      displayName: displayName || null,
-    },
-  });
+  if (!dbUser) {
+    return NextResponse.json(
+      { message: "DATABASE_URL is not configured." },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({
     ok: true,

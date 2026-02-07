@@ -1,15 +1,17 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
 import { HistoryList } from "@/components/pomodoro/history-list";
-import { getCurrentUser } from "@/lib/auth";
 import { getHistoryViewModel } from "@/lib/pomodoro/service";
 
 export default async function HistoryPage() {
-  const user = await getCurrentUser();
+  const { userId } = await auth();
 
-  if (!user) {
-    return null;
+  if (!userId) {
+    redirect("/sign-in");
   }
 
-  const history = await getHistoryViewModel(user.id);
+  const history = await getHistoryViewModel(userId);
 
   return (
     <div className="space-y-6">
