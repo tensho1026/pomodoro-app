@@ -1,6 +1,8 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { prisma } from "@/lib/prisma";
+
 export type AppUser = {
   id: string;
   name: string;
@@ -29,6 +31,47 @@ function getDisplayNameFromClerkUser(user: Awaited<ReturnType<typeof currentUser
   return user.username ?? "";
 }
 
+function getEmailFromClerkUser(user: Awaited<ReturnType<typeof currentUser>>) {
+  if (!user) {
+    return "";
+  }
+
+  return (
+    user.primaryEmailAddress?.emailAddress ??
+    user.emailAddresses[0]?.emailAddress ??
+    `${user.id}@clerk.local`
+  );
+}
+
+async function syncUserToDatabase({
+  clerkId,
+  email,
+  displayName,
+}: {
+  clerkId: string;
+  email: string;
+  displayName: string;
+}) {
+  if (!prisma) {
+    return;
+  }
+
+  await prisma.user.upsert({
+    where: {
+      clerkId,
+    },
+    update: {
+      email,
+      displayName: displayName || null,
+    },
+    create: {
+      clerkId,
+      email,
+      displayName: displayName || null,
+    },
+  });
+}
+
 export async function getCurrentUser(): Promise<AppUser | null> {
   if (!hasClerkEnvironment) {
     return null;
@@ -45,12 +88,18 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return null;
   }
 
-  const email =
-    user.primaryEmailAddress?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+  const name = getDisplayNameFromClerkUser(user);
+  const email = getEmailFromClerkUser(user);
+
+  await syncUserToDatabase({
+    clerkId: user.id,
+    email,
+    displayName: name,
+  });
 
   return {
     id: user.id,
-    name: getDisplayNameFromClerkUser(user),
+    name,
     email,
     authProvider: "clerk",
   };
