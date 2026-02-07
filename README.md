@@ -43,8 +43,14 @@ npm run dev
 
 ## データ保存について
 
-現時点では `data/pomodoros.json` へ保存する仮実装です。
-将来的に `prisma/schema.prisma` のモデルへ置き換える想定です。
+記録データは Prisma 経由でデータベースへ保存・取得します。
+
+事前にマイグレーションと Prisma Client 生成を実行してください。
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
 
 ## CI
 

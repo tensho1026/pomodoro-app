@@ -61,7 +61,14 @@ export async function createPomodoroSessionAction(
   }
 
   const clerkUser = await currentUser();
-  await syncClerkUserToDatabase(clerkUser);
+  const syncedUser = await syncClerkUserToDatabase(clerkUser);
+
+  if (!syncedUser) {
+    return {
+      status: "error",
+      message: "データベース接続が未設定です。DATABASE_URLを確認してください。",
+    };
+  }
 
   const parsed = createSessionSchema.safeParse({
     title: formData.get("title"),
@@ -86,14 +93,21 @@ export async function createPomodoroSessionAction(
     };
   }
 
-  await createPomodoroSession({
-    userId,
-    title: parsed.data.title,
-    note: parsed.data.note,
-    minutesPerSet: parsed.data.minutesPerSet,
-    setCount: parsed.data.setCount,
-    startedAt: normalizeStartedAt(parsed.data.startedAt),
-  });
+  try {
+    await createPomodoroSession({
+      userId,
+      title: parsed.data.title,
+      note: parsed.data.note,
+      minutesPerSet: parsed.data.minutesPerSet,
+      setCount: parsed.data.setCount,
+      startedAt: normalizeStartedAt(parsed.data.startedAt),
+    });
+  } catch {
+    return {
+      status: "error",
+      message: "記録の保存に失敗しました。少し時間をおいて再試行してください。",
+    };
+  }
 
   revalidatePath("/");
   revalidatePath("/record");
